@@ -250,9 +250,9 @@ impl PrimeElem {
     }
 
     fn times(&self, rhs: &PrimeElem) -> PrimeElem {
-        let (sum, overflowed) = self.x.overflowing_mul(rhs.x);
+        let (prod, overflowed) = self.x.overflowing_mul(rhs.x);
         assert!(!overflowed);
-        let (res, overflowed) = sum.overflowing_rem(*P);
+        let (res, overflowed) = prod.overflowing_rem(*P);
         assert!(!overflowed);
         PrimeElem { x: res }
     }
@@ -291,7 +291,7 @@ impl MimcState {
     }
 
     fn mix(&mut self) {
-        for i in 0..self.rounds {
+        for i in 0..(self.rounds - 1) {
             let t = self.k.plus(&self.l).plus(&C[i]);
             let l_new = t.fifth_power().plus(&self.r);
             self.r = self.l.clone();
@@ -311,7 +311,7 @@ impl MimcState {
             state.mix();
         }
         let mut outputs = vec![state.l.clone()];
-        for _ in 0..n_outputs {
+        for _ in 1..n_outputs {
             state.mix();
             outputs.push(state.l.clone());
         }
@@ -320,6 +320,6 @@ impl MimcState {
 }
 
 fn main() {
-    let outputs = MimcState::sponge(vec![10, 11, 12], 2, 4);
+    let outputs = MimcState::sponge(vec![2048, 0], 1, 220);
     println!("{:?}", outputs);
 }
