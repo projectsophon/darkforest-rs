@@ -1,7 +1,17 @@
+#![feature(proc_macro_hygiene, decl_macro)]
+
+#[macro_use]
+extern crate rocket;
+
 #[macro_use]
 extern crate lazy_static;
 
 use bigint::U512;
+
+use serde::{Serialize, Deserialize};
+use rocket_contrib::json::Json;
+
+use rayon::prelude::*;
 
 lazy_static! {
     static ref P: U512 = U512::from_dec_str("21888242871839275222246405745257275088548364400416034343698204186575808495617").unwrap();
@@ -301,10 +311,19 @@ impl MimcState {
         self.r = t.fifth_power().plus(&self.r);
     }
 
-    fn sponge(inputs: Vec<u64>, n_outputs: usize, rounds: usize) -> Vec<PrimeElem> {
+    fn sponge(inputs: Vec<i64>, n_outputs: usize, rounds: usize) -> Vec<PrimeElem> {
         let inputs = inputs.into_iter()
-            .map(|x| PrimeElem { x: U512::from_big_endian(&x.to_be_bytes()) })
-            .collect::<Vec<_>>();
+            .map(|x| {
+                let bigx = if x < 0 {
+                    let (diff, overflowed) = P.overflowing_sub(
+                        U512::from_big_endian(&((-x).to_be_bytes())));
+                    assert!(!overflowed);
+                    diff
+                } else {
+                    U512::from_big_endian(&x.to_be_bytes())
+                };
+                PrimeElem { x: bigx }
+            }).collect::<Vec<_>>();
         let mut state = MimcState::new(rounds, PrimeElem::zero());
         for elt in inputs {
             state.inject(&elt);
@@ -319,7 +338,75 @@ impl MimcState {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+struct Coords {
+    x: i64,
+    y: i64,
+}
+
+#[derive(Serialize, Deserialize)]
+struct Planet {
+    coords: Coords,
+    hash: String,
+}
+
+#[allow(non_snake_case)]
+#[derive(Serialize, Deserialize, Clone)]
+struct ChunkFootprint {
+    bottomLeft: Coords,
+    sideLength: i64,
+}
+
+#[allow(non_snake_case)]
+#[derive(Deserialize)]
+struct Task {
+    chunkFootprint: ChunkFootprint,
+    planetRarity: u32,
+}
+
+#[allow(non_snake_case)]
+#[derive(Serialize)]
+struct Response {
+    chunkFootprint: ChunkFootprint,
+    planetLocations: Vec<Planet>,
+}
+
+#[post("/mine", data = "<task>")]
+fn mine(task: Json<Task>) -> Json<Response> {
+    let x = task.chunkFootprint.bottomLeft.x;
+    let y = task.chunkFootprint.bottomLeft.y;
+    let size = task.chunkFootprint.sideLength;
+
+    let (threshold, overflowed) = P.overflowing_div(U512::from(task.planetRarity));
+    assert!(!overflowed);
+
+    let planets = (x..(x + size)).into_par_iter().map(|xi| {
+        let mut planets = Vec::new();
+        for yi in y..(y + size) {
+            let hash = MimcState::sponge(vec![xi, yi], 1, 220)[0].x;
+            if hash < threshold {
+                planets.push(Planet {
+                    coords: Coords { x: xi, y: yi },
+                    hash: hash.to_string(),
+                });
+            }
+        }
+        planets
+    }).flatten().collect::<Vec<_>>();
+
+    Json(Response {
+        chunkFootprint: task.chunkFootprint.clone(),
+        planetLocations: planets,
+    })
+}
+
 fn main() {
-    let outputs = MimcState::sponge(vec![2048, 0], 1, 220);
-    println!("{:?}", outputs);
+    // for x in 0.. {
+    //     if x % 100 == 0 {
+    //         println!("trying ({}, 0)", x);
+    //     }
+    //     MimcState::sponge(vec![x, 0], 1, 220);
+    // }
+
+    rocket::ignite().mount("/", routes![mine]).launch();
 }
