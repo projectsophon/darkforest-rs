@@ -408,5 +408,7 @@ fn main() {
     //     MimcState::sponge(vec![x, 0], 1, 220);
     // }
 
+    // println!("{:?}", MimcState::sponge(vec![-2048, 0], 1, 220));
+
     rocket::ignite().mount("/", routes![mine]).launch();
 }
