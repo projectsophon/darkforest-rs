@@ -13,6 +13,9 @@ use rocket_contrib::json::Json;
 
 use rayon::prelude::*;
 
+use rocket::http::Method;
+use rocket_cors::{AllowedHeaders, AllowedOrigins, catch_all_options_routes};
+
 lazy_static! {
     static ref P: U512 = U512::from_dec_str("21888242871839275222246405745257275088548364400416034343698204186575808495617").unwrap();
     static ref C: Vec<PrimeElem> = {
@@ -409,6 +412,16 @@ fn main() {
     // }
 
     // println!("{:?}", MimcState::sponge(vec![-2048, 0], 1, 220));
+    let allowed_origins = AllowedOrigins::all();
+    let cors = rocket_cors::CorsOptions {
+        allowed_origins,
+        allowed_methods: vec![Method::Post].into_iter().map(From::from).collect(),
+        allowed_headers: AllowedHeaders::all(),
+        allow_credentials: true,
+        ..Default::default()
+    }
+    .to_cors().unwrap();
+    let options_routes = catch_all_options_routes();
 
-    rocket::ignite().mount("/", routes![mine]).launch();
+    rocket::ignite().mount("/", routes![mine]).mount("/", options_routes).manage(cors.clone()).attach(cors).launch();
 }

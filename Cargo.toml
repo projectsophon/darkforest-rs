@@ -11,5 +11,6 @@ lazy_static = "1.4.0"
 bigint = "4.4.3"
 rocket = "0.4.5"
 rocket_contrib = "0.4.5"
+rocket_cors = "0.5.1"
 serde = { version = "1.0.116", features = ["derive"] }
 rayon = "1.1"
