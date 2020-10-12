@@ -6,7 +6,12 @@ extern crate rocket;
 #[macro_use]
 extern crate lazy_static;
 
-use bigint::U512;
+use uint::construct_uint;
+construct_uint! {
+    pub struct U512(8);
+}
+use std::ops::Div;
+use std::ops::Rem;
 
 use serde::{Serialize, Deserialize};
 use rocket_contrib::json::Json;
@@ -257,15 +262,14 @@ impl PrimeElem {
     fn plus(&self, rhs: &PrimeElem) -> PrimeElem {
         let (sum, overflowed) = self.x.overflowing_add(rhs.x);
         assert!(!overflowed);
-        let (res, overflowed) = sum.overflowing_rem(*P);
-        assert!(!overflowed);
+        let res = sum.rem(*P);
         PrimeElem { x: res }
     }
 
     fn times(&self, rhs: &PrimeElem) -> PrimeElem {
         let (prod, overflowed) = self.x.overflowing_mul(rhs.x);
         assert!(!overflowed);
-        let (res, overflowed) = prod.overflowing_rem(*P);
+        let res  = prod.rem(*P);
         assert!(!overflowed);
         PrimeElem { x: res }
     }
@@ -380,8 +384,7 @@ fn mine(task: Json<Task>) -> Json<Response> {
     let y = task.chunkFootprint.bottomLeft.y;
     let size = task.chunkFootprint.sideLength;
 
-    let (threshold, overflowed) = P.overflowing_div(U512::from(task.planetRarity));
-    assert!(!overflowed);
+    let threshold = P.div(U512::from(task.planetRarity));
 
     let planets = (x..(x + size)).into_par_iter().map(|xi| {
         let mut planets = Vec::new();

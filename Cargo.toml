@@ -8,7 +8,7 @@ edition = "2018"
 
 [dependencies]
 lazy_static = "1.4.0"
-bigint = "4.4.3"
+uint = "0.8.5"
 rocket = "0.4.5"
 rocket_contrib = "0.4.5"
 rocket_cors = "0.5.1"
