@@ -12,6 +12,7 @@ construct_uint! {
 }
 use std::ops::Div;
 use std::ops::Rem;
+use itertools::iproduct;
 
 use serde::{Serialize, Deserialize};
 use rocket_contrib::json::Json;
@@ -386,19 +387,21 @@ fn mine(task: Json<Task>) -> Json<Response> {
 
     let threshold = P.div(U512::from(task.planetRarity));
 
-    let planets = (x..(x + size)).into_par_iter().map(|xi| {
-        let mut planets = Vec::new();
-        for yi in y..(y + size) {
-            let hash = MimcState::sponge(vec![xi, yi], 1, 220)[0].x;
-            if hash < threshold {
-                planets.push(Planet {
-                    coords: Coords { x: xi, y: yi },
-                    hash: hash.to_string(),
-                });
-            }
+    let planets = iproduct!(x..(x + size), y..(y + size))
+    .par_bridge()
+    .filter_map(|(xi, yi)| {
+        let hash = MimcState::sponge(vec![xi, yi], 1, 220)[0].x;
+        if hash < threshold {
+            Some(Planet {
+                coords: Coords { x: xi, y: yi },
+                hash: hash.to_string(),
+            })
+        } else {
+            None
         }
-        planets
-    }).flatten().collect::<Vec<_>>();
+    })
+    .collect::<Vec<Planet>>();
+
 
     Json(Response {
         chunkFootprint: task.chunkFootprint.clone(),
