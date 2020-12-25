@@ -22,7 +22,7 @@ use rayon::prelude::*;
 use rocket::http::Method;
 use rocket_cors::{catch_all_options_routes, AllowedHeaders, AllowedOrigins};
 
-static KEY: u32 = 5;
+static KEY: u32 = 7;
 
 lazy_static! {
     static ref P: U512 = U512::from_dec_str(
