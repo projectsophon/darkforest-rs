@@ -22,6 +22,8 @@ use rayon::prelude::*;
 use rocket::http::Method;
 use rocket_cors::{catch_all_options_routes, AllowedHeaders, AllowedOrigins};
 
+static KEY: u32 = 5;
+
 lazy_static! {
     static ref P: U512 = U512::from_dec_str(
         "21888242871839275222246405745257275088548364400416034343698204186575808495617"
@@ -339,7 +341,7 @@ impl MimcState {
                 PrimeElem { x: bigx }
             })
             .collect::<Vec<_>>();
-        let mut state = MimcState::new(rounds, PrimeElem::zero());
+        let mut state = MimcState::new(rounds, PrimeElem { x: U512::from(KEY) });
         for elt in inputs {
             state.inject(&elt);
             state.mix();
