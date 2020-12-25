@@ -9,9 +9,9 @@ edition = "2018"
 [dependencies]
 lazy_static = "1.4.0"
 uint = "0.8.5"
-rocket = "0.4.5"
-rocket_contrib = "0.4.5"
-rocket_cors = "0.5.1"
-serde = { version = "1.0.116", features = ["derive"] }
-rayon = "1.1"
+rocket = "0.4.6"
+rocket_contrib = "0.4.6"
+rocket_cors = "0.5.2"
+serde = { version = "1.0.118", features = ["derive"] }
+rayon = "1.5.0"
 itertools = "0.9.0"
