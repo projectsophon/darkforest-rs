@@ -13,6 +13,7 @@ construct_uint! {
 use itertools::iproduct;
 use std::ops::Div;
 use std::ops::Rem;
+use std::env;
 
 use rocket_contrib::json::Json;
 use serde::{Deserialize, Serialize};
@@ -20,6 +21,7 @@ use serde::{Deserialize, Serialize};
 use rayon::prelude::*;
 
 use rocket::http::Method;
+use rocket::config::{Config, ConfigError, Environment};
 use rocket_cors::{catch_all_options_routes, AllowedHeaders, AllowedOrigins};
 
 static KEY: u32 = 7;
@@ -417,15 +419,13 @@ fn mine(task: Json<Task>) -> Json<Response> {
     })
 }
 
-fn main() {
-    // for x in 0.. {
-    //     if x % 100 == 0 {
-    //         println!("trying ({}, 0)", x);
-    //     }
-    //     MimcState::sponge(vec![x, 0], 1, 220);
-    // }
+fn main() -> Result<(), ConfigError> {
+    let key = "PORT";
+    let port: u16 = match env::var(key) {
+        Ok(val) => val.parse::<u16>().unwrap(),
+        Err(_) => 8000,
+    };
 
-    // println!("{:?}", MimcState::sponge(vec![-2048, 0], 1, 220));
     let allowed_origins = AllowedOrigins::all();
     let cors = rocket_cors::CorsOptions {
         allowed_origins,
@@ -438,10 +438,17 @@ fn main() {
     .unwrap();
     let options_routes = catch_all_options_routes();
 
-    rocket::ignite()
+    let config = Config::build(Environment::Staging)
+        .address("0.0.0.0")
+        .port(port)
+        .finalize()?;
+
+    rocket::custom(config)
         .mount("/", routes![mine])
         .mount("/", options_routes)
         .manage(cors.clone())
         .attach(cors)
         .launch();
+
+    Ok(())
 }
