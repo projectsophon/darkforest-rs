@@ -35,5 +35,6 @@ RUN groupadd ${USER} \
     chown -R ${USER}:${USER} /bin
 
 USER ${USER}
+EXPOSE 8000
 
 ENTRYPOINT ["./server"]
