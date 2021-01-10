@@ -13,7 +13,7 @@ good results.
 * Install [rust for your operating system](https://www.rust-lang.org/tools/install) probably with `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
 * The rocket webserver requires nightly so add that `rustup install nightly`
 * Run it `cargo run`
-* Connect to it with an in game plugin like [RemoteExplorePlugin.js](https://github.com/phated/df-plugins)
+* Connect to it with an in game plugin like [RemoteExplorePlugin.js](https://github.com/darkforest-eth/plugins/tree/master/content/productivity/remote-explore)
 
 # Troubleshooting
 
