@@ -24,8 +24,6 @@ use rocket::http::Method;
 use rocket::config::{Config, ConfigError, Environment};
 use rocket_cors::{catch_all_options_routes, AllowedHeaders, AllowedOrigins};
 
-static KEY: u32 = 7;
-
 lazy_static! {
     static ref P: U512 = U512::from_dec_str(
         "21888242871839275222246405745257275088548364400416034343698204186575808495617"
@@ -328,7 +326,7 @@ impl MimcState {
         self.r = t.fifth_power().plus(&self.r);
     }
 
-    fn sponge(inputs: Vec<i64>, n_outputs: usize, rounds: usize) -> Vec<PrimeElem> {
+    fn sponge(inputs: Vec<i64>, n_outputs: usize, rounds: usize, key:u32) -> Vec<PrimeElem> {
         let inputs = inputs
             .into_iter()
             .map(|x| {
@@ -343,7 +341,7 @@ impl MimcState {
                 PrimeElem { x: bigx }
             })
             .collect::<Vec<_>>();
-        let mut state = MimcState::new(rounds, PrimeElem { x: U512::from(KEY) });
+        let mut state = MimcState::new(rounds, PrimeElem { x: U512::from(key) });
         for elt in inputs {
             state.inject(&elt);
             state.mix();
@@ -381,6 +379,7 @@ struct ChunkFootprint {
 struct Task {
     chunkFootprint: ChunkFootprint,
     planetRarity: u32,
+    planetHashKey: u32
 }
 
 #[allow(non_snake_case)]
@@ -395,13 +394,14 @@ fn mine(task: Json<Task>) -> Json<Response> {
     let x = task.chunkFootprint.bottomLeft.x;
     let y = task.chunkFootprint.bottomLeft.y;
     let size = task.chunkFootprint.sideLength;
+    let key = task.planetHashKey;
 
     let threshold = P.div(U512::from(task.planetRarity));
 
     let planets = iproduct!(x..(x + size), y..(y + size))
         .par_bridge()
         .filter_map(|(xi, yi)| {
-            let hash = MimcState::sponge(vec![xi, yi], 1, 220)[0].x;
+            let hash = MimcState::sponge(vec![xi, yi], 1, 220, key)[0].x;
             if hash < threshold {
                 Some(Planet {
                     coords: Coords { x: xi, y: yi },
