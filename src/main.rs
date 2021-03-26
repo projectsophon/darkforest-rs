@@ -1,28 +1,16 @@
-#![feature(proc_macro_hygiene, decl_macro)]
-
-#[macro_use]
-extern crate rocket;
-
-#[macro_use]
-extern crate lazy_static;
-
+use itertools::iproduct;
+use lazy_static::lazy_static;
+use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
+use std::env;
+use std::ops::Div;
+use std::ops::Rem;
+use tide::{Body, Request};
 use uint::construct_uint;
+
 construct_uint! {
     pub struct U512(8);
 }
-use itertools::iproduct;
-use std::ops::Div;
-use std::ops::Rem;
-use std::env;
-
-use rocket_contrib::json::Json;
-use serde::{Deserialize, Serialize};
-
-use rayon::prelude::*;
-
-use rocket::http::Method;
-use rocket::config::{Config, ConfigError, Environment};
-use rocket_cors::{catch_all_options_routes, AllowedHeaders, AllowedOrigins};
 
 lazy_static! {
     static ref P: U512 = U512::from_dec_str(
@@ -326,7 +314,7 @@ impl MimcState {
         self.r = t.fifth_power().plus(&self.r);
     }
 
-    fn sponge(inputs: Vec<i64>, n_outputs: usize, rounds: usize, key:u32) -> Vec<PrimeElem> {
+    fn sponge(inputs: Vec<i64>, n_outputs: usize, rounds: usize, key: u32) -> Vec<PrimeElem> {
         let inputs = inputs
             .into_iter()
             .map(|x| {
@@ -379,7 +367,7 @@ struct ChunkFootprint {
 struct Task {
     chunkFootprint: ChunkFootprint,
     planetRarity: u32,
-    planetHashKey: u32
+    planetHashKey: u32,
 }
 
 #[allow(non_snake_case)]
@@ -389,66 +377,63 @@ struct Response {
     planetLocations: Vec<Planet>,
 }
 
-#[post("/mine", data = "<task>")]
-fn mine(task: Json<Task>) -> Json<Response> {
-    let x = task.chunkFootprint.bottomLeft.x;
-    let y = task.chunkFootprint.bottomLeft.y;
-    let size = task.chunkFootprint.sideLength;
-    let key = task.planetHashKey;
-
-    let threshold = P.div(U512::from(task.planetRarity));
-
-    let planets = iproduct!(x..(x + size), y..(y + size))
-        .par_bridge()
-        .filter_map(|(xi, yi)| {
-            let hash = MimcState::sponge(vec![xi, yi], 1, 220, key)[0].x;
-            if hash < threshold {
-                Some(Planet {
-                    coords: Coords { x: xi, y: yi },
-                    hash: hash.to_string(),
-                })
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<Planet>>();
-
-    Json(Response {
-        chunkFootprint: task.chunkFootprint.clone(),
-        planetLocations: planets,
-    })
+#[derive(Debug, Deserialize)]
+struct Animal {
+    name: String,
+    legs: u8,
 }
 
-fn main() -> Result<(), ConfigError> {
-    let key = "PORT";
-    let port: u16 = match env::var(key) {
-        Ok(val) => val.parse::<u16>().unwrap(),
-        Err(_) => 8000,
-    };
+#[async_std::main]
+async fn main() -> tide::Result<()> {
+    //todo
+    // let key = "PORT";
+    // let port: u16 = match env::var(key) {
+    //     Ok(val) => val.parse::<u16>().unwrap(),
+    //     Err(_) => 8000,
+    // };
 
-    let allowed_origins = AllowedOrigins::all();
-    let cors = rocket_cors::CorsOptions {
-        allowed_origins,
-        allowed_methods: vec![Method::Post].into_iter().map(From::from).collect(),
-        allowed_headers: AllowedHeaders::all(),
-        allow_credentials: true,
-        ..Default::default()
-    }
-    .to_cors()
-    .unwrap();
-    let options_routes = catch_all_options_routes();
+    let mut app = tide::new();
+    app.at("/").get(|_| async { Ok("Hello TLS") });
 
-    let config = Config::build(Environment::Staging)
-        .address("0.0.0.0")
-        .port(port)
-        .finalize()?;
+    app.at("/submit").post(|mut req: Request<()>| async move {
+        #[allow(non_snake_case)]
+        let Task {
+            chunkFootprint,
+            planetHashKey,
+            planetRarity,
+        } = req.body_json().await?;
 
-    rocket::custom(config)
-        .mount("/", routes![mine])
-        .mount("/", options_routes)
-        .manage(cors.clone())
-        .attach(cors)
-        .launch();
+        let x = chunkFootprint.bottomLeft.x;
+        let y = chunkFootprint.bottomLeft.y;
+        let size = chunkFootprint.sideLength;
+        let key = planetHashKey;
+
+        let threshold = P.div(U512::from(planetRarity));
+
+        let planets = iproduct!(x..(x + size), y..(y + size))
+            .par_bridge()
+            .filter_map(|(xi, yi)| {
+                let hash = MimcState::sponge(vec![xi, yi], 1, 220, key)[0].x;
+                if hash < threshold {
+                    Some(Planet {
+                        coords: Coords { x: xi, y: yi },
+                        hash: hash.to_string(),
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<Planet>>();
+
+        let rsp = Response {
+            chunkFootprint,
+            planetLocations: planets,
+        };
+
+        Ok(Body::from_json(&rsp)?)
+    });
+
+    app.listen("0.0.0.0:8080").await?;
 
     Ok(())
 }
