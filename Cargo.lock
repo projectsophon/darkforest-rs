@@ -1115,6 +1115,7 @@ dependencies = [
  "serde",
  "tide",
  "tide-acme",
+ "tide-rustls",
  "uint",
 ]
 

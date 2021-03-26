@@ -2,10 +2,10 @@ use itertools::iproduct;
 use lazy_static::lazy_static;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::env;
 use std::ops::Div;
 use std::ops::Rem;
 use tide::{Body, Request};
+use tide_acme::{AcmeConfig, TideRustlsExt};
 use uint::construct_uint;
 
 construct_uint! {
@@ -385,17 +385,12 @@ struct Animal {
 
 #[async_std::main]
 async fn main() -> tide::Result<()> {
-    //todo
-    // let key = "PORT";
-    // let port: u16 = match env::var(key) {
-    //     Ok(val) => val.parse::<u16>().unwrap(),
-    //     Err(_) => 8000,
-    // };
+    let path = std::env::var("TIDE_ACME_CACHE_DIR").unwrap();
 
     let mut app = tide::new();
     app.at("/").get(|_| async { Ok("Hello TLS") });
 
-    app.at("/submit").post(|mut req: Request<()>| async move {
+    app.at("/mine").post(|mut req: Request<()>| async move {
         #[allow(non_snake_case)]
         let Task {
             chunkFootprint,
@@ -433,7 +428,14 @@ async fn main() -> tide::Result<()> {
         Ok(Body::from_json(&rsp)?)
     });
 
-    app.listen("0.0.0.0:8080").await?;
+    app.listen(
+        tide_rustls::TlsListener::build().addrs("0.0.0.0:443").acme(
+            AcmeConfig::new()
+                .domains(vec!["domain.example".to_string()])
+                .cache_dir(path),
+        ),
+    )
+    .await?;
 
     Ok(())
 }
