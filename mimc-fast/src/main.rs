@@ -9,7 +9,7 @@ use tide_acme::{AcmeConfig, TideRustlsExt};
 
 #[async_std::main]
 async fn main() -> tide::Result<()> {
-    let path = std::env::var("TIDE_ACME_CACHE_DIR").unwrap();
+    let path = std::env::var("TIDE_ACME_CACHE_DIR").unwrap_or_else(|_| String::from("cache"));
 
     let cors = CorsMiddleware::new()
         .allow_methods("GET, POST, OPTIONS".parse::<HeaderValue>().unwrap())
