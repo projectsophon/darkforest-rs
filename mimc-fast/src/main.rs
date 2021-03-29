@@ -58,11 +58,13 @@ async fn main() -> tide::Result<()> {
     });
 
     app.listen(
-        tide_rustls::TlsListener::build().addrs("0.0.0.0:443").acme(
-            AcmeConfig::new()
-                .domains(vec!["domain.example".to_string()])
-                .cache_dir(path),
-        ),
+        tide_rustls::TlsListener::build()
+            .addrs("0.0.0.0:4433")
+            .acme(
+                AcmeConfig::new()
+                    .domains(vec!["domain.example".to_string()])
+                    .cache_dir(path),
+            ),
     )
     .await?;
 
