@@ -19,8 +19,7 @@ cloud or even a rapsberry pi 4 has been found to provide 1-2k hashes.
 The rust miner on the same machine as your game can be faster than the javascript because it can more fully utilize the processor. But if you're running on the same machine as the game, pause the in game miner. They're just going to compete with eachother and give you worse peformance.
 
 - Install [rust for your operating system](https://www.rust-lang.org/tools/install) probably with `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
-- The rocket webserver requires nightly so add that `rustup install nightly`
-- Install with `cargo +nightly install --git https://github.com/jacobrosenthal/mimc-fast --branch v5`
+- Install with `cargo install --git https://github.com/jacobrosenthal/mimc-fast --branch v6-tide-split`
 - Run it with `mimc-fast`
 - Connect to it with an in game plugin like [RemoteExplorePlugin.js](https://github.com/darkforest-eth/plugins/tree/master/content/productivity/remote-explore)
 
@@ -43,7 +42,7 @@ make the docker files more accomodating though.
 
 ## Troubleshooting
 
-To test its working you can do a quick curl `curl --data '{"chunkFootprint": { "bottomLeft": { "x": 0, "y": 0 }, "sideLength": 256 }, "planetRarity":16384}' -H "Content-Type: application/json" -X POST localhost:8000/mine`
+To test its working you can do a quick curl `curl --data '{"chunkFootprint": { "bottomLeft": { "x": 0, "y": 0 }, "sideLength": 256 }, "planetRarity":16384, planetHashKey":8}' -H "Content-Type: application/json" -X POST localhost:4433/mine`
 
 Remember to pause the built in miner if you're running it on the same machine as
 the game client or theyll just fight eachother.
