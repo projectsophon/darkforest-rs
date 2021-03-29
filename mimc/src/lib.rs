@@ -1,19 +1,12 @@
-use itertools::iproduct;
-use lazy_static::lazy_static;
-use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::ops::Div;
 use std::ops::Rem;
-use tide::{Body, Request};
-use tide_acme::{AcmeConfig, TideRustlsExt};
-use uint::construct_uint;
 
-construct_uint! {
+uint::construct_uint! {
     pub struct U512(8);
 }
 
-lazy_static! {
-    static ref P: U512 = U512::from_dec_str(
+lazy_static::lazy_static! {
+    pub static ref P: U512 = U512::from_dec_str(
         "21888242871839275222246405745257275088548364400416034343698204186575808495617"
     )
     .unwrap();
@@ -250,8 +243,8 @@ lazy_static! {
 }
 
 #[derive(Debug, Clone)]
-struct PrimeElem {
-    x: U512,
+pub struct PrimeElem {
+    pub x: U512,
 }
 
 impl PrimeElem {
@@ -281,7 +274,7 @@ impl PrimeElem {
     }
 }
 
-struct MimcState {
+pub struct MimcState {
     l: PrimeElem,
     r: PrimeElem,
     rounds: usize,
@@ -289,7 +282,7 @@ struct MimcState {
 }
 
 impl MimcState {
-    fn new(rounds: usize, k: PrimeElem) -> MimcState {
+    pub fn new(rounds: usize, k: PrimeElem) -> MimcState {
         assert!(rounds <= C.len());
         MimcState {
             l: PrimeElem::zero(),
@@ -314,7 +307,7 @@ impl MimcState {
         self.r = t.fifth_power().plus(&self.r);
     }
 
-    fn sponge(inputs: Vec<i64>, n_outputs: usize, rounds: usize, key: u32) -> Vec<PrimeElem> {
+    pub fn sponge(inputs: Vec<i64>, n_outputs: usize, rounds: usize, key: u32) -> Vec<PrimeElem> {
         let inputs = inputs
             .into_iter()
             .map(|x| {
@@ -344,98 +337,35 @@ impl MimcState {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-struct Coords {
-    x: i64,
-    y: i64,
+pub struct Coords {
+    pub x: i64,
+    pub y: i64,
 }
 
 #[derive(Serialize, Deserialize)]
-struct Planet {
-    coords: Coords,
-    hash: String,
+pub struct Planet {
+    pub coords: Coords,
+    pub hash: String,
 }
 
 #[allow(non_snake_case)]
 #[derive(Serialize, Deserialize, Clone)]
-struct ChunkFootprint {
-    bottomLeft: Coords,
-    sideLength: i64,
+pub struct ChunkFootprint {
+    pub bottomLeft: Coords,
+    pub sideLength: i64,
 }
 
 #[allow(non_snake_case)]
 #[derive(Deserialize)]
-struct Task {
-    chunkFootprint: ChunkFootprint,
-    planetRarity: u32,
-    planetHashKey: u32,
+pub struct Task {
+    pub chunkFootprint: ChunkFootprint,
+    pub planetRarity: u32,
+    pub planetHashKey: u32,
 }
 
 #[allow(non_snake_case)]
 #[derive(Serialize)]
-struct Response {
-    chunkFootprint: ChunkFootprint,
-    planetLocations: Vec<Planet>,
-}
-
-#[derive(Debug, Deserialize)]
-struct Animal {
-    name: String,
-    legs: u8,
-}
-
-#[async_std::main]
-async fn main() -> tide::Result<()> {
-    let path = std::env::var("TIDE_ACME_CACHE_DIR").unwrap();
-
-    let mut app = tide::new();
-    app.at("/").get(|_| async { Ok("Hello TLS") });
-
-    app.at("/mine").post(|mut req: Request<()>| async move {
-        #[allow(non_snake_case)]
-        let Task {
-            chunkFootprint,
-            planetHashKey,
-            planetRarity,
-        } = req.body_json().await?;
-
-        let x = chunkFootprint.bottomLeft.x;
-        let y = chunkFootprint.bottomLeft.y;
-        let size = chunkFootprint.sideLength;
-        let key = planetHashKey;
-
-        let threshold = P.div(U512::from(planetRarity));
-
-        let planets = iproduct!(x..(x + size), y..(y + size))
-            .par_bridge()
-            .filter_map(|(xi, yi)| {
-                let hash = MimcState::sponge(vec![xi, yi], 1, 220, key)[0].x;
-                if hash < threshold {
-                    Some(Planet {
-                        coords: Coords { x: xi, y: yi },
-                        hash: hash.to_string(),
-                    })
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<Planet>>();
-
-        let rsp = Response {
-            chunkFootprint,
-            planetLocations: planets,
-        };
-
-        Ok(Body::from_json(&rsp)?)
-    });
-
-    app.listen(
-        tide_rustls::TlsListener::build().addrs("0.0.0.0:443").acme(
-            AcmeConfig::new()
-                .domains(vec!["domain.example".to_string()])
-                .cache_dir(path),
-        ),
-    )
-    .await?;
-
-    Ok(())
+pub struct Response {
+    pub chunkFootprint: ChunkFootprint,
+    pub planetLocations: Vec<Planet>,
 }
