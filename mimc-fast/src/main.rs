@@ -1,8 +1,8 @@
+use darkforest::{mimc, threshold, ChunkFootprint, Coords, Planet};
 use http_types::headers::HeaderValue;
 use itertools::iproduct;
-use mimc::{Coords, MimcState, Planet, Response, Task, P, U512};
 use rayon::prelude::*;
-use std::ops::Div;
+use serde::{Deserialize, Serialize};
 use tide::security::{CorsMiddleware, Origin};
 use tide::{Body, Request};
 use tide_acme::{AcmeConfig, TideRustlsExt};
@@ -32,12 +32,12 @@ async fn main() -> tide::Result<()> {
         let size = chunkFootprint.sideLength;
         let key = planetHashKey;
 
-        let threshold = P.div(U512::from(planetRarity));
+        let threshold = threshold(planetRarity);
 
         let planets = iproduct!(x..(x + size), y..(y + size))
             .par_bridge()
             .filter_map(|(xi, yi)| {
-                let hash = MimcState::sponge(vec![xi, yi], 1, 220, key)[0].x;
+                let hash = mimc(xi, yi, 220, key);
                 if hash < threshold {
                     Some(Planet {
                         coords: Coords { x: xi, y: yi },
@@ -54,7 +54,7 @@ async fn main() -> tide::Result<()> {
             planetLocations: planets,
         };
 
-        Ok(Body::from_json(&rsp)?)
+        Body::from_json(&rsp)
     });
 
     app.listen(
@@ -69,4 +69,19 @@ async fn main() -> tide::Result<()> {
     .await?;
 
     Ok(())
+}
+
+#[allow(non_snake_case)]
+#[derive(Deserialize)]
+pub struct Task {
+    pub chunkFootprint: ChunkFootprint,
+    pub planetRarity: u32,
+    pub planetHashKey: u32,
+}
+
+#[allow(non_snake_case)]
+#[derive(Serialize)]
+pub struct Response {
+    pub chunkFootprint: ChunkFootprint,
+    pub planetLocations: Vec<Planet>,
 }

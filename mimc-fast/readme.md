@@ -1,7 +1,7 @@
 # Dark forest mimc miner
 
 [Dark Forest](https://zkga.me/), the world's first decentralized real-time
-strategy game. Built on Ethereum with zkSNARKsis a https://zkga.me/
+strategy game. Built on Ethereum with zkSNARKsis a <https://zkga.me/>
 
 Note if you're not technical and cant get through this guide, remember you can
 get a lot of speedup by just having the stock game use more cores with
@@ -32,7 +32,7 @@ make the docker files more accomodating though.
 
 - Fork the plugin to your own repo on Github
 - Make a new project on Google Cloud Run
-- Go to https://console.cloud.google.com/run
+- Go to <https://console.cloud.google.com/run>
 - Click "+ Create Service"
 - Choose the server you wanna use and the name of the service
 - Choose "continuously deploy from source repository

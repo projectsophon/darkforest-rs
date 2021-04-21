@@ -1,9 +1,5 @@
-use serde::{Deserialize, Serialize};
+pub use primitive_types::U512;
 use std::ops::Rem;
-
-uint::construct_uint! {
-    pub struct U512(8);
-}
 
 lazy_static::lazy_static! {
     pub static ref P: U512 = U512::from_dec_str(
@@ -282,7 +278,7 @@ pub struct MimcState {
 }
 
 impl MimcState {
-    pub fn new(rounds: usize, k: PrimeElem) -> MimcState {
+    fn new(rounds: usize, k: PrimeElem) -> MimcState {
         assert!(rounds <= C.len());
         MimcState {
             l: PrimeElem::zero(),
@@ -307,11 +303,11 @@ impl MimcState {
         self.r = t.fifth_power().plus(&self.r);
     }
 
-    pub fn sponge(inputs: Vec<i64>, n_outputs: usize, rounds: usize, key: u32) -> Vec<PrimeElem> {
+    pub fn sponge(inputs: &[i64], n_outputs: usize, rounds: usize, key: u32) -> Vec<PrimeElem> {
         let inputs = inputs
-            .into_iter()
+            .iter()
             .map(|x| {
-                let bigx = if x < 0 {
+                let bigx = if x < &0 {
                     let (diff, overflowed) =
                         P.overflowing_sub(U512::from_big_endian(&((-x).to_be_bytes())));
                     assert!(!overflowed);
@@ -334,38 +330,4 @@ impl MimcState {
         }
         outputs
     }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Coords {
-    pub x: i64,
-    pub y: i64,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Planet {
-    pub coords: Coords,
-    pub hash: String,
-}
-
-#[allow(non_snake_case)]
-#[derive(Serialize, Deserialize, Clone)]
-pub struct ChunkFootprint {
-    pub bottomLeft: Coords,
-    pub sideLength: i64,
-}
-
-#[allow(non_snake_case)]
-#[derive(Deserialize)]
-pub struct Task {
-    pub chunkFootprint: ChunkFootprint,
-    pub planetRarity: u32,
-    pub planetHashKey: u32,
-}
-
-#[allow(non_snake_case)]
-#[derive(Serialize)]
-pub struct Response {
-    pub chunkFootprint: ChunkFootprint,
-    pub planetLocations: Vec<Planet>,
 }

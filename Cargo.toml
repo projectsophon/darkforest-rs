@@ -1,5 +1,5 @@
 [workspace]
-members = ["mimc", "mimc-fast"]
+members = ["mimc", "mimc-fast", "darkforest"]
 
 # force release mode for dev in case people dont use --release
 [profile.dev]
