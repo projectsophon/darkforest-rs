@@ -5,12 +5,9 @@ use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use tide::security::{CorsMiddleware, Origin};
 use tide::{Body, Request};
-use tide_acme::{AcmeConfig, TideRustlsExt};
 
 #[async_std::main]
 async fn main() -> tide::Result<()> {
-    let path = std::env::var("TIDE_ACME_CACHE_DIR").unwrap_or_else(|_| String::from("cache"));
-
     let cors = CorsMiddleware::new()
         .allow_methods("GET, POST, OPTIONS".parse::<HeaderValue>().unwrap())
         .allow_origin(Origin::from("*"))
@@ -57,16 +54,7 @@ async fn main() -> tide::Result<()> {
         Body::from_json(&rsp)
     });
 
-    app.listen(
-        tide_rustls::TlsListener::build()
-            .addrs("0.0.0.0:4433")
-            .acme(
-                AcmeConfig::new()
-                    .domains(vec!["domain.example".to_string()])
-                    .cache_dir(path),
-            ),
-    )
-    .await?;
+    app.listen("127.0.0.1:8000").await?;
 
     Ok(())
 }
