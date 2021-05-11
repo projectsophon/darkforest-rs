@@ -42,7 +42,7 @@ make the docker files more accomodating though.
 
 ## Troubleshooting
 
-To test its working you can do a quick curl `curl --data '{"chunkFootprint": { "bottomLeft": { "x": 0, "y": 0 }, "sideLength": 256 }, "planetRarity":16384, planetHashKey":8}' -H "Content-Type: application/json" -X POST localhost:4433/mine`
+To test its working you can do a quick curl `curl --data '{"chunkFootprint": { "bottomLeft": { "x": 0, "y": 0 }, "sideLength": 256 }, "planetRarity":16384, "planetHashKey": 8}' -H "Content-Type: application/json" -X POST localhost:8000/mine`
 
 Remember to pause the built in miner if you're running it on the same machine as
 the game client or theyll just fight eachother.

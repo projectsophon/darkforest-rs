@@ -34,7 +34,7 @@ async fn main() -> tide::Result<()> {
         let planets = iproduct!(x..(x + size), y..(y + size))
             .par_bridge()
             .filter_map(|(xi, yi)| {
-                let hash = mimc(xi, yi, 220, key);
+                let hash = mimc(xi, yi, key);
                 if hash < threshold {
                     Some(Planet {
                         coords: Coords { x: xi, y: yi },

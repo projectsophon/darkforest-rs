@@ -654,6 +654,7 @@ dependencies = [
 name = "darkforest"
 version = "0.1.0"
 dependencies = [
+ "lazy_static",
  "mimc",
  "serde",
 ]
@@ -1161,7 +1162,6 @@ dependencies = [
 name = "mimc"
 version = "0.1.0"
 dependencies = [
- "lazy_static",
  "primitive-types",
 ]
 

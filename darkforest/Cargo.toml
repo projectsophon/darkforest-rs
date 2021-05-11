@@ -8,3 +8,7 @@ edition = "2018"
 [dependencies]
 mimc = { version = "0.1.0", path = "../mimc" }
 serde = { version = "1.0.124", features = ["derive"] }
+
+[build-dependencies]
+lazy_static = "1.4.0"
+mimc = { version = "0.1.0", path = "../mimc" }
