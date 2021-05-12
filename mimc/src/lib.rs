@@ -53,8 +53,9 @@ impl MimcState {
     }
 
     fn mix(&mut self, c: &[PrimeElem], p: &U512) {
-        for i in 0..(c.len() - 1) {
-            let t = self.k.plus(&self.l, p).plus(&c[i], p);
+        // existing code only does C.len()-1 ?? on purpose?
+        for item in c.iter().take(c.len() - 1) {
+            let t = self.k.plus(&self.l, p).plus(item, p);
             let l_new = t.fifth_power(p).plus(&self.r, p);
             self.r = self.l.clone();
             self.l = l_new;
