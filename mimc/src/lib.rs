@@ -36,14 +36,16 @@ impl PrimeElem {
 pub struct MimcState {
     l: PrimeElem,
     r: PrimeElem,
+    rounds: usize,
     k: PrimeElem,
 }
 
 impl MimcState {
-    fn new(k: PrimeElem) -> MimcState {
+    fn new(rounds: usize, k: PrimeElem) -> MimcState {
         MimcState {
             l: PrimeElem::zero(),
             r: PrimeElem::zero(),
+            rounds,
             k,
         }
     }
@@ -53,8 +55,7 @@ impl MimcState {
     }
 
     fn mix(&mut self, c: &[PrimeElem], p: &U512) {
-        // existing code only does C.len()-1 ?? on purpose?
-        for item in c.iter().take(c.len() - 1) {
+        for item in c.iter().take(self.rounds - 1) {
             let t = self.k.plus(&self.l, p).plus(item, p);
             let l_new = t.fifth_power(p).plus(&self.r, p);
             self.r = self.l.clone();
@@ -68,6 +69,7 @@ impl MimcState {
 pub fn sponge(
     inputs: &[i64],
     n_outputs: usize,
+    rounds: usize,
     key: u32,
     p: &U512,
     c: &[PrimeElem],
@@ -86,7 +88,7 @@ pub fn sponge(
             PrimeElem { x: bigx }
         })
         .collect::<Vec<_>>();
-    let mut state = MimcState::new(PrimeElem { x: U512::from(key) });
+    let mut state = MimcState::new(rounds, PrimeElem { x: U512::from(key) });
     for elt in inputs {
         state.inject(&elt, p);
         state.mix(c, p);

@@ -1,4 +1,4 @@
-use darkforest::{mimc, threshold, ChunkFootprint, Coords, Planet};
+use darkforest::{mimc_hash, threshold, ChunkFootprint, Coords, Planet};
 use itertools::iproduct;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -16,7 +16,7 @@ async fn mine(task: Task) -> Result<impl warp::Reply, warp::Rejection> {
     let planets = iproduct!(x..(x + size), y..(y + size))
         .par_bridge()
         .filter_map(|(xi, yi)| {
-            let hash = mimc(xi, yi, key);
+            let hash = mimc_hash(xi, yi, key);
             if hash < threshold {
                 Some(Planet {
                     coords: Coords { x: xi, y: yi },

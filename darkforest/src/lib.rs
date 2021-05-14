@@ -5,8 +5,13 @@ use std::ops::Div;
 
 include!(concat!(env!("OUT_DIR"), "/constants.rs"));
 
-pub fn mimc(x: i64, y: i64, key: u32) -> U512 {
-    sponge(&[x, y], 1, key, &P, &C)[0].x
+pub fn mimc_hash(x: i64, y: i64, key: u32) -> U512 {
+    mimc_hash_rounds(x, y, key, C.len())
+}
+
+pub fn mimc_hash_rounds(x: i64, y: i64, key: u32, rounds: usize) -> U512 {
+    assert!(rounds <= C.len());
+    sponge(&[x, y], 1, rounds, key, &P, &C)[0].x
 }
 
 pub fn threshold(rarity: u32) -> U512 {
@@ -48,7 +53,7 @@ mod tests {
 
     #[test]
     fn sponge() {
-        let hash = mimc(216, 158, 8);
+        let hash = mimc_hash(216, 158, 8);
         assert_eq!(
             hash.to_string(),
             String::from(
