@@ -2,6 +2,7 @@ use darkforest::{mimc, threshold, ChunkFootprint, Coords, Planet};
 use itertools::iproduct;
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::env;
 use warp::{http::Method, Filter};
 
 async fn mine(task: Task) -> Result<impl warp::Reply, warp::Rejection> {
@@ -39,6 +40,11 @@ async fn mine(task: Task) -> Result<impl warp::Reply, warp::Rejection> {
 async fn main() {
     pretty_env_logger::init();
 
+    let port = env::var("PORT")
+        .unwrap_or_else(|_| "8000".into())
+        .parse::<u16>()
+        .unwrap();
+
     let cors = warp::cors()
         .allow_methods(&[Method::GET, Method::POST, Method::OPTIONS])
         .allow_any_origin()
@@ -52,7 +58,7 @@ async fn main() {
         .and_then(mine)
         .with(cors);
 
-    warp::serve(route).run(([127, 0, 0, 1], 8000)).await
+    warp::serve(route).run(([127, 0, 0, 1], port)).await
 }
 
 #[allow(non_snake_case)]
