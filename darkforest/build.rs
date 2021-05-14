@@ -246,7 +246,7 @@ fn main() {
     let dest_path = Path::new(&out_dir).join("constants.rs");
     let mut f = fs::File::create(&dest_path).unwrap();
 
-    writeln!(&mut f, "pub const C: [PrimeElem; {}] = [", C.len()).unwrap();
+    writeln!(&mut f, "const C: [PrimeElem; {}] = [", C.len()).unwrap();
     for v in C.iter() {
         writeln!(&mut f, "PrimeElem {{x: U512([").unwrap();
         for byte in v.x.as_ref().iter() {
@@ -256,7 +256,7 @@ fn main() {
     }
     writeln!(&mut f, "];").unwrap();
 
-    writeln!(&mut f, "pub const P: U512 = U512([").unwrap();
+    writeln!(&mut f, "const P: U512 = U512([").unwrap();
     for byte in P.as_ref().iter() {
         writeln!(&mut f, "    {},", &format!("{:?}", byte)).unwrap();
     }

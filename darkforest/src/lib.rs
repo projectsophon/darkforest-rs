@@ -1,5 +1,5 @@
-use mimc::PrimeElem;
-pub use mimc::{sponge, U512};
+pub use mimc::U512;
+use mimc::{sponge, PrimeElem};
 use serde::{Deserialize, Serialize};
 use std::ops::Div;
 
