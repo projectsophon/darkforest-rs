@@ -37,4 +37,4 @@ RUN groupadd ${USER} \
 USER ${USER}
 EXPOSE 8000
 
-ENTRYPOINT ["RUST_LOG=trace ./server"]
+ENTRYPOINT ["RUST_LOG=info ./server"]

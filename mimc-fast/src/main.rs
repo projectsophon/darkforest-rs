@@ -40,6 +40,8 @@ async fn mine(task: Task) -> Result<impl warp::Reply, warp::Rejection> {
 async fn main() {
     pretty_env_logger::init();
 
+    let log = warp::log("mimc-fast");
+
     let port = env::var("PORT")
         .unwrap_or_else(|_| "8000".into())
         .parse::<u16>()
@@ -56,6 +58,7 @@ async fn main() {
         .and(warp::body::content_length_limit(1024 * 16))
         .and(warp::body::json())
         .and_then(mine)
+        .with(log)
         .with(cors);
 
     warp::serve(route).run(([127, 0, 0, 1], port)).await

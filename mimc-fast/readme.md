@@ -20,7 +20,7 @@ The rust miner on the same machine as your game can be faster than the javascrip
 
 - Install [rust for your operating system](https://www.rust-lang.org/tools/install) probably with `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
 - Install with `cargo install --git https://github.com/jacobrosenthal/mimc-fast --branch v6-warp-split`
-- Run it with `mimc-fast`
+- Run it with `RUST_LOG=info mimc-fast` (which also turns on logging)
 - Connect to it with an in game plugin like [RemoteExplorePlugin.js](https://github.com/darkforest-eth/plugins/tree/master/content/productivity/remote-explore)
 
 ### google cloud run
@@ -42,7 +42,7 @@ make the docker files more accomodating though.
 
 ## Troubleshooting
 
-You can get debug logs by running with `RUST_LOG=trace cargo run`
+You can get far more debug logs by running with `RUST_LOG=trace cargo run`
 
 To test its working you can do a quick curl `curl --data '{"chunkFootprint": { "bottomLeft": { "x": 0, "y": 0 }, "sideLength": 256 }, "planetRarity":16384, "planetHashKey": 8}' -H "Content-Type: application/json" -X POST localhost:8000/mine`
 
