@@ -61,7 +61,7 @@ async fn main() {
         .with(log)
         .with(cors);
 
-    warp::serve(route).run(([127, 0, 0, 1], port)).await
+    warp::serve(route).run(([0, 0, 0, 0], port)).await
 }
 
 #[allow(non_snake_case)]
