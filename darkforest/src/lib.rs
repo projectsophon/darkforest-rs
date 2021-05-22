@@ -1,7 +1,11 @@
 pub use mimc::U512;
 use mimc::{sponge, PrimeElem};
 use serde::{Deserialize, Serialize};
+use std::cmp::PartialEq;
 use std::ops::Div;
+
+mod explorers;
+pub use explorers::*;
 
 include!(concat!(env!("OUT_DIR"), "/constants.rs"));
 
@@ -18,20 +22,20 @@ pub fn threshold(rarity: u32) -> U512 {
     P.div(U512::from(rarity))
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct Coords {
     pub x: i64,
     pub y: i64,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Planet {
     pub coords: Coords,
     pub hash: String,
 }
 
 #[allow(non_snake_case)]
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct ChunkFootprint {
     pub bottomLeft: Coords,
     pub sideLength: i64,
