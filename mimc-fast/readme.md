@@ -18,6 +18,24 @@ The rust miner on the same machine as your game can be faster than the javascrip
 
 Remember to pause the built in miner if you're running it on the same machine as the game client or they'll just fight eachother for resources and give LESS hashes overall.
 
+## Deploy to Google Cloud Run
+
+- Add a `Dockerfile`:
+```docker
+FROM rust
+WORKDIR /darkforest-rs
+
+COPY . .
+RUN cargo build --release --bin mimc-fast
+
+EXPOSE 8000
+CMD ["./target/release/mimc-fast"]
+```
+- Build `docker build -t mimc-fast .`
+- Push `docker tag mimc-fast gcr.io/$GCLOUD_PROJECT_ID/mimc-fast && docker push gcr.io/$GCLOUD_PROJECT_ID/mimc-fast`
+- Set up a Cloud Run service based on the image you just push. Don't forget to edit the service to set the port to 8000.
+- You can now use the URL provided by the cloud run service to call it `/mine` using the remote explorer plugin in-game.
+
 ## Troubleshooting
 To test its working to the mining url, in the case of your local machine `curl --data '{"chunkFootprint": { "bottomLeft": { "x": 0, "y": 0 }, "sideLength": 256 }, "planetRarity":16384, "planetHashKey": 8}' -H "Content-Type: application/json" -X POST localhost:8000/mine`
 
