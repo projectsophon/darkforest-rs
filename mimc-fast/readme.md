@@ -18,6 +18,18 @@ The rust miner on the same machine as your game can be faster than the javascrip
 
 Remember to pause the built in miner if you're running it on the same machine as the game client or they'll just fight eachother for resources and give LESS hashes overall.
 
+### Windows
+- Install [rust for your operating system](https://www.rust-lang.org/tools/install) probably with `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+- Install with `cargo install --git  https://github.com/projectsophon/darkforest-rs --bin mimc-fast --force --branch=main`
+- mimc-fast.exe is located at `C:\Users\<username>\.cargo\bin` you can copy past it where you want
+- Create a miner.bat file in the same directory as mimc-fast.exe with 
+
+		set RAYON_NUM_THREADS=16
+		set RUST_LOG=info
+		mimc-fast.exe
+- Open miner.bat to start the server
+- Use `http://localhost:8000/mine` to connect to your local miner with the built in plugin "Remote Explore"
+
 ## Troubleshooting
 To test its working to the mining url, in the case of your local machine `curl --data '{"chunkFootprint": { "bottomLeft": { "x": 0, "y": 0 }, "sideLength": 256 }, "planetRarity":16384, "planetHashKey": 8}' -H "Content-Type: application/json" -X POST localhost:8000/mine`
 
