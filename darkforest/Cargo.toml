@@ -12,3 +12,7 @@ serde = { version = "1.0.124", features = ["derive"] }
 [build-dependencies]
 lazy_static = "1.4.0"
 mimc = { version = "0.1.0", path = "../mimc" }
+
+[dev-dependencies]
+rayon = "1.5.0"
+itertools = "0.10.0"
