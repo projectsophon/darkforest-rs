@@ -10,7 +10,9 @@ This rust package pulls out the fog of war miner to its own binary with a webser
 
 The rust miner on the same machine as your game can be faster than the javascript because it can more fully utilize the processor. But if you're running on the same machine as the game, pause the in game miner. They're just going to compete with eachother and give you worse peformance.
 
-- Install [rust for your operating system](https://www.rust-lang.org/tools/install) probably with `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+- Install [rust for your operating system](https://www.rust-lang.org/tools/install) probably with `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`. You might need to restart your ssh connection for cargo to work.
+- Install libc6 with: `sudo apt-get install libc6-dev`. 
+- Install essentials with: `sudo apt install build-essential`
 - Install with `cargo install --git  https://github.com/projectsophon/darkforest-rs --bin mimc-fast --force --branch=main`
 - Run it (with logging enabled environment variable) with `mimc-fast` or with logging enabled `RUST_LOG=info mimc-fast`
 - Connect to it with the built in plugin "Remote Explore"
